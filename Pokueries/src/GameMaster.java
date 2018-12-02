@@ -30,6 +30,13 @@ public class GameMaster
 	            System.out.println(look.getClassName()); 
 	    } 
 	}
+	public static void getAllPokemon()
+	{
+		//This method will use the PokemonGetter Class to get all pokemon
+		//for the pokedex
+		
+		
+	}
 	
 
 

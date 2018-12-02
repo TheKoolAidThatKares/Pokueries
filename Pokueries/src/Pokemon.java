@@ -1,5 +1,5 @@
 
-public abstract class Pokemon 
+public class Pokemon 
 {
 
 	String name;
@@ -11,6 +11,25 @@ public abstract class Pokemon
 	
 	public int maxHp;
 	public int hp;
+	
+	public void setName(String nameIn)
+	{
+		name = nameIn;
+	}
+	
+	public String getName()
+	{
+		return name;
+	}
+	public void setHP(int HPIn)
+	{
+		hp = HPIn;
+	}
+	
+	public int getHP()
+	{
+		return hp;
+	}
 	
 	public void summon()
 	{
@@ -40,11 +59,11 @@ public abstract class Pokemon
 		}
 	}
 	
-	abstract public void ability1();
+	//abstract public void ability1();
 	
-	abstract public void ability2();
+	//abstract public void ability2();
 	
-	abstract public void ability3();
+	//abstract public void ability3();
 	
 	
 	
