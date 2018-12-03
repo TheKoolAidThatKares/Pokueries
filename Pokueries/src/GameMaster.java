@@ -1,9 +1,13 @@
+import java.util.ArrayList;
+
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 public class GameMaster 
 {
-
+	
+	ArrayList<Pokemon> allPokemon = new ArrayList<>();
+	
 	public static void main(String[] args)
 	{
 		makeArt();
@@ -12,7 +16,7 @@ public class GameMaster
 	
 	public static void formUI()
 	{
-		UI menu = new UI();
+		UI UserInterface = new UI();
 	}
 	public static void makeArt()
 	{
