@@ -1,16 +1,21 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.print.DocFlavor.URL;
 import javax.swing.BorderFactory;
@@ -26,10 +31,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
+import javax.swing.table.DefaultTableModel;
 
 public class UI implements ActionListener {
 	
@@ -120,22 +128,66 @@ public class UI implements ActionListener {
         Image newimg = Pokeimage.getScaledInstance(120, 120, Image.SCALE_DEFAULT);
         
         JLabel label = new JLabel(new ImageIcon(newimg));
+        
+        String col[] = {"id", "Name", "hp"};
+
+        DefaultTableModel tableModel = new DefaultTableModel(col, 0);            // The 0 argument is number rows.
+
+        JTable table = new JTable(tableModel);
+        
+        table.setDefaultEditor(Object.class, null);
+        
+        JScrollPane scroll = new JScrollPane(table);
+        
+        final ArrayList<Pokemon> pokemon = GameMaster.allPokemon;
+        
+        
+        System.out.println(pokemon.size());
+        
+        for(int i = 0; i < pokemon.size(); i++)
+        {
+        	Object[] objs = {pokemon.get(i).getID(), pokemon.get(i).getName(), pokemon.get(i).getHP(), 11, 2, 2, 15, 30, 11, 19};
+        	tableModel.addRow(objs);
+        }
 		
-		top.add(label, gbcPokedex);
-		bottom.add(new JLabel("Test2"), gbcPokedex);
+		right.add(label, gbcPokedex);
+		bottom.add(scroll, gbcPokedex);
 		left.add(new JLabel("Test3"), gbcPokedex);
 		
-		top.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));
-		bottom.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));
-		left.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));
+		right.setBorder(BorderFactory.createBevelBorder(1));
+		bottom.setBorder(BorderFactory.createBevelBorder(1));
+		left.setBorder(BorderFactory.createBevelBorder(1));
 		
-		pokedexFrame.add(top, BorderLayout.NORTH);
+		pokedexFrame.add(right, BorderLayout.EAST);
 		pokedexFrame.add(bottom, BorderLayout.SOUTH);
 		pokedexFrame.add(left, BorderLayout.WEST);
 		
 		pokedexFrame.setVisible(true);
 		
 		mainFrame.add(pokedexFrame);
+		
+		table.addMouseListener(new MouseAdapter() {
+		    public void mousePressed(MouseEvent mouseEvent) {
+		        JTable table =(JTable) mouseEvent.getSource();
+		        Point point = mouseEvent.getPoint();
+		        int row = table.rowAtPoint(point);
+		        if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1) {
+		            System.out.println(row);
+		            pokedexFrame.setTitle(pokemon.get(row).getName());
+		            
+		            right.removeAll();
+		            
+		    		java.net.URL url = UI.class.getResource("/resources/" + pokemon.get(row).getName() + ".gif");
+		            ImageIcon iconPoke = new ImageIcon(url);
+		            Image Pokeimage = iconPoke.getImage();
+		            Image newimg = Pokeimage.getScaledInstance(120, 120, Image.SCALE_DEFAULT);
+		            
+		            JLabel label = new JLabel(new ImageIcon(newimg));
+		            
+		            right.add(label, gbcPokedex);
+		        }
+		    }
+		});
 	}
 	
 	public void cleanPanels()

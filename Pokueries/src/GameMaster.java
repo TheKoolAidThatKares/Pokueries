@@ -11,8 +11,8 @@ public class GameMaster
 	public static void main(String[] args)
 	{
 		makeArt();
-		formUI();
 		getAllPokemon();
+		formUI();
 	}
 	
 	public static void formUI()
@@ -44,6 +44,7 @@ public class GameMaster
 		try {
 			newOne.connectToDB();
 			newOne.displayPokemon();
+			allPokemon = newOne.getPokemon();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			System.out.println("Error: unable to connect to Database");

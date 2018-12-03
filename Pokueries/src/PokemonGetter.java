@@ -89,6 +89,8 @@ public class PokemonGetter
 			resultSet = statement.executeQuery("select * from " + database + ".cards");
 
 			while (resultSet.next()) {
+				
+				Pokemon buffer = new Pokemon();
 
 				int pokemon_id = resultSet.getInt("pokemon_id");
 
@@ -109,6 +111,19 @@ public class PokemonGetter
 				int resistance = resultSet.getInt("resistance");
 
 				int retreat_cost = resultSet.getInt("retreat_cost");
+				
+				buffer.setID(pokemon_id);
+				buffer.setName(name);
+				buffer.setHP(hp);
+				buffer.setPokemonPower(pokemon_power);
+				buffer.setAttack1(attack1);
+				buffer.setAttack2(attack2);
+				buffer.setStrength(strength);
+				buffer.setWeakness(weakness);
+				buffer.setResistance(resistance);
+				buffer.setRetreatCost(retreat_cost);
+				
+				pokemon.add(buffer);
 
 				System.out.print(pokemon_id + " // " + name + " // " + hp + " // " + pokemon_power + " // ");
 
@@ -119,6 +134,7 @@ public class PokemonGetter
 				System.out.println();
 
 			}
+			System.out.println(pokemon.size());
 
 		} catch (Exception e) {
 
@@ -143,7 +159,7 @@ public class PokemonGetter
 
 		bulbasaur.setHP(50);
 
-		pokemon.add(bulbasaur);
+		//pokemon.add(bulbasaur);
 
 		Pokemon charmander = new Pokemon();
 
@@ -151,7 +167,7 @@ public class PokemonGetter
 
 		bulbasaur.setHP(60);
 
-		pokemon.add(charmander);
+		//pokemon.add(charmander);
 
 		return pokemon;
 
