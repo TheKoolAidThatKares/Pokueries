@@ -6,12 +6,13 @@ import javax.swing.UIManager;
 public class GameMaster 
 {
 	
-	ArrayList<Pokemon> allPokemon = new ArrayList<>();
+	static ArrayList<Pokemon> allPokemon = new ArrayList<>();
 	
 	public static void main(String[] args)
 	{
 		makeArt();
 		formUI();
+		getAllPokemon();
 	}
 	
 	public static void formUI()
@@ -39,9 +40,14 @@ public class GameMaster
 		//This method will use the PokemonGetter Class to get all pokemon
 		//for the pokedex
 		
-		
+		PokemonGetter newOne = new PokemonGetter();
+		try {
+			newOne.connectToDB();
+			newOne.displayPokemon();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.out.println("Error: unable to connect to Database");
+			e.printStackTrace();
+		}	
 	}
-	
-
-
 }

@@ -52,7 +52,7 @@ public class PokemonGetter
 
 	final private String passwd = "PasswordF181234";
 
-	final private String database = "Pokeuries";
+	final private String database = "sys";
 
 	final private String sslSwitch = "useSSL=false&";
 
@@ -72,7 +72,7 @@ public class PokemonGetter
 
 		} catch (Exception e) {
 
-			throw e;
+			e.printStackTrace();
 
 		}
 
