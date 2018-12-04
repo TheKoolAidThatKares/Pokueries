@@ -43,7 +43,7 @@ public class GameMaster
 		PokemonGetter newOne = new PokemonGetter();
 		try {
 			newOne.connectToDB();
-			newOne.displayPokemon();
+			//newOne.displayPokemon();
 			allPokemon = newOne.getPokemon();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
