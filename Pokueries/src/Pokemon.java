@@ -45,6 +45,8 @@ public class Pokemon {
 	private int resistance;
 	private int retreat_cost;
 	
+	public String key;
+	
 	public Pokemon()
 	{	
 	}
@@ -345,6 +347,14 @@ public class Pokemon {
 
 	public void setRetreatCost(int retreatCostIn) {
 		retreat_cost = retreatCostIn;
+	}
+
+	public String getKey() {
+		return key;
+	}
+	
+	public void setKey(String keyIn) {
+		key = keyIn;
 	}
 
 	public int getRetreatCost() {
