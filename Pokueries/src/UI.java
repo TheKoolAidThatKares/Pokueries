@@ -16,6 +16,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyVetoException;
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -29,6 +30,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.print.DocFlavor.URL;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
@@ -45,6 +49,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -82,6 +87,11 @@ public class UI implements ActionListener {
 	GridBagConstraints gbcPokedex = new GridBagConstraints();
 	
 	static int turns = 1;
+	static int player1Poke = 0;
+	static int player2Poke = 0;
+	static int dmg;
+	static int hp;
+	static int j = 0;
 
 	public void draw()
 	{
@@ -135,6 +145,11 @@ public class UI implements ActionListener {
           		pokedex(); 
           	 }
         });
+        exit.addActionListener(new ActionListener(){
+         	 public void actionPerformed(ActionEvent e){
+         		System.exit(1);
+         	 }
+       });
 	}
 	public void pokedex()
 	{
@@ -202,7 +217,7 @@ public class UI implements ActionListener {
         final ArrayList<Pokemon> pokemon = GameMaster.allPokemon;
         
         
-        System.out.println(pokemon.size());
+        //System.out.println(pokemon.size());
         
         for(int i = 0; i < pokemon.size(); i++)
         {
@@ -229,12 +244,13 @@ public class UI implements ActionListener {
 		
 		mainFrame.add(pokedexFrame);
 		
-		table.addMouseListener(new MouseAdapter() {
+
+table.addMouseListener(new MouseAdapter() {
 		    public void mousePressed(MouseEvent mouseEvent) {
 		        JTable table =(JTable) mouseEvent.getSource();
 		        Point point = mouseEvent.getPoint();
 		        int row = table.rowAtPoint(point);
-		        if (mouseEvent.getClickCount() == 2 && table.getSelectedRow() != -1) {
+		        if (mouseEvent.getClickCount() == 1 && table.getSelectedRow() != -1) {
 		            System.out.println(row);
 		            pokedexFrame.setTitle(pokemon.get(row).getName());
 		            
@@ -249,12 +265,194 @@ public class UI implements ActionListener {
 		            
 		            right.add(label, gbcPokedex);
 		            
-		            String attack2 = null;
+		           
 		            
 		            left.removeAll();
+		            
+		            // PokemonGetter to query the database
+		            PokemonGetter dataModifier = new PokemonGetter();
+		            
+		            
+		            
+		            JLabel lblHP = new JLabel("HP:");
+		            JLabel lblAtt1 = new JLabel("Attack 1:");
+		            JLabel lblDmg1 = new JLabel("Damage:");
+		            JLabel lblAtt2 = new JLabel("Attack 2:");
+		            JLabel lblDmg2 = new JLabel("Damage:");
+		            
+		            JTextField txtHP = new JTextField("", 2);
+		            txtHP.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							try {
+								dataModifier.connectToDB();
+								dataModifier.statement = dataModifier.connect.createStatement();
+								dataModifier.statement.executeUpdate("update cards set hp = " + Integer.parseInt(txtHP.getText()) + 
+										" where pokemon_id = " + pokemon.get(row).getID());
+								dataModifier.statement.close();
+								dataModifier.connect.close();
+								
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							System.out.println("HP Changed");
+						}
+		            	
+		            });
+		            
+		            JTextField txtAtt1 = new JTextField("", 5);
+		            txtAtt1.addActionListener(new ActionListener() {
+		            	public void actionPerformed(ActionEvent e) {
+		            		try {
+								dataModifier.connectToDB();
+								dataModifier.statement = dataModifier.connect.createStatement();
+								dataModifier.statement.executeUpdate("update cards set attack1 = " + Integer.parseInt(txtAtt1.getText()) + 
+										" where pokemon_id = " + pokemon.get(row).getID());
+								dataModifier.statement.close();
+								dataModifier.connect.close();
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+		            		System.out.println("Attack1 Changed");
+		            	}
+		            });
+		            
+		            JTextField txtDmg1 = new JTextField("", 2);
+		            txtDmg1.addActionListener(new ActionListener() {
+		            	public void actionPerformed(ActionEvent e) {
+		            		try {
+								dataModifier.connectToDB();
+								dataModifier.statement = dataModifier.connect.createStatement();
+								dataModifier.statement.executeUpdate("update attacks set damage = " + Integer.parseInt(txtDmg1.getText()) + 
+										" where attack_id = " + pokemon.get(row).getAttack1());
+								System.out.println("Pokemon Attack1 = " + pokemon.get(row).getAttack1());
+								dataModifier.statement.close();
+								dataModifier.connect.close();
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+		            		System.out.println("Damage1 Changed");
+		            	}
+		            });
+		            
+		            JTextField txtAtt2 = new JTextField("", 5);
+		            txtAtt2.addActionListener(new ActionListener() {
+		            	public void actionPerformed(ActionEvent e)
+		            	{
+		            		try {
+								dataModifier.connectToDB();
+								dataModifier.statement = dataModifier.connect.createStatement();
+								dataModifier.statement.executeUpdate("update cards set attack2 = " + Integer.parseInt(txtAtt2.getText()) + 
+										" where pokemon_id = " + pokemon.get(row).getID());
+								dataModifier.statement.close();
+								dataModifier.connect.close();
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+		            		System.out.println("Attack2 Changed");
+		            	}
+		            });
+		            
+		            JTextField txtDmg2 = new JTextField("", 2);
+		            txtDmg2.addActionListener(new ActionListener() {
+		            	public void actionPerformed(ActionEvent e) {
+		            		try {
+								dataModifier.connectToDB();
+								dataModifier.statement = dataModifier.connect.createStatement();
+								dataModifier.statement.executeUpdate("update attacks set damage = " + Integer.parseInt(txtDmg2.getText()) + 
+										" where attack_id = " + pokemon.get(row).getAttack2());
+								
+								System.out.println("PokemonAttack2 = " + pokemon.get(row).getAttack2());
+								dataModifier.statement.close();
+								dataModifier.connect.close();
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+		            		System.out.println("Damage2 Changed");
+		            	}
+		            });
+		           
+		            JButton insert = new JButton("Insert");
+		            JButton update = new JButton("Update");
+		            JButton delete = new JButton("Delete");
+		            
+		            gbcPokedex.gridx = 0;
+		            gbcPokedex.gridy = 0;		            
+		            left.add(lblHP, gbcPokedex);
+		            gbcPokedex.gridx= 1;
+		            gbcPokedex.gridy = 0;
+		            left.add(txtHP, gbcPokedex);
+		            gbcPokedex.gridx = 0;
+		            gbcPokedex.gridy = 1;		            
+		            left.add(lblAtt1, gbcPokedex);
+		            gbcPokedex.gridx = 1;
+		            gbcPokedex.gridy = 1;
+		            left.add(txtAtt1, gbcPokedex);
+		            gbcPokedex.gridx = 0;
+		            gbcPokedex.gridy = 2;
+		            left.add(lblDmg1, gbcPokedex);
+		            gbcPokedex.gridx = 1;
+		            gbcPokedex.gridy = 2;
+		            left.add(txtDmg1, gbcPokedex);
+		            gbcPokedex.gridx = 0;
+		            gbcPokedex.gridy = 3;
+		            left.add(lblAtt2, gbcPokedex);
+		            gbcPokedex.gridx = 1;
+		            gbcPokedex.gridy = 3;
+		            left.add(txtAtt2, gbcPokedex);
+		            gbcPokedex.gridx = 0;
+		            gbcPokedex.gridy = 4;
+		            left.add(lblDmg2, gbcPokedex);
+		            gbcPokedex.gridx = 1;
+		            gbcPokedex.gridy = 4;
+		            left.add(txtDmg2, gbcPokedex);
+		            
+		            String attack2 = null;
 		            attack2 = pokemon.get(row).getAttack2Name();
 		            
+		            if (!(attack2 == null))
+		            {
+		            	lblHP.setVisible(true);
+			            txtHP.setVisible(true);
+			            lblAtt1.setVisible(true);
+			            txtAtt1.setVisible(true);
+			            lblDmg1.setVisible(true);
+			            txtDmg1.setVisible(true);
+			            lblAtt2.setVisible(true);
+			            txtAtt2.setVisible(true);
+			            lblDmg2.setVisible(true);
+			            txtDmg2.setVisible(true);
+		            	
+						txtHP.setText(String.valueOf(pokemon.get(row).getHP()));
+						txtAtt1.setText(String.valueOf(pokemon.get(row).getAttack1()));
+						txtDmg1.setText(String.valueOf(pokemon.get(row).getAttack1Damage()));
+						txtAtt2.setText(String.valueOf(pokemon.get(row).getAttack2()));
+						txtDmg2.setText(String.valueOf(pokemon.get(row).getAttack2Damage()));
+		            }
+		            else
+		            {
+		            	lblAtt2.setVisible(false);
+			            txtAtt2.setVisible(false);
+			            lblDmg2.setVisible(false);
+			            txtDmg2.setVisible(false);
+		            	
+		            	lblHP.setVisible(true);
+			            txtHP.setVisible(true);
+			            lblAtt1.setVisible(true);
+			            txtAtt1.setVisible(true);
+			            lblDmg1.setVisible(true);
+			            txtDmg1.setVisible(true);
+			            	            	
+		            	txtHP.setText(String.valueOf(pokemon.get(row).getHP()));
+						txtAtt1.setText(String.valueOf(pokemon.get(row).getAttack1()));
+						txtDmg1.setText(String.valueOf(pokemon.get(row).getAttack1Damage()));
+		            }
 		            
+		            /*
 		            if (!(attack2 == null))
 		            {
 		            left.add(new JLabel("<html>HP: " + pokemon.get(row).getHP() + "<br>Attack 1: " + pokemon.get(row).getAttack1Name() + 
@@ -267,6 +465,10 @@ public class UI implements ActionListener {
 		            	left.add(new JLabel("<html>HP: " + pokemon.get(row).getHP() + "<br>Attack 1: " + pokemon.get(row).getAttack1Name() + 
 			            		"<br>Damage: " + pokemon.get(row).getAttack1Damage() + "<br></html>"), gbcPokedex);
 		            }
+		            */
+		            
+		           
+		            
 		        }
 		    }
 		});
@@ -349,7 +551,7 @@ public class UI implements ActionListener {
             Image Pokeimage = iconPoke.getImage();
             Image newimg = Pokeimage.getScaledInstance(120, 120, Image.SCALE_DEFAULT);
             
-            System.out.println(i);
+          //  //System.out.println(i);
             
             JLabel label = new JLabel(new ImageIcon(newimg));
         	
@@ -397,7 +599,7 @@ public class UI implements ActionListener {
 		        	
 		        	player1.addPokemon(pokemon.get(row));
 		        	
-		        	System.out.println(pokemon.get(row) + " Added");
+		        	//System.out.println(pokemon.get(row) + " Added");
 		        
 		        	Container parent = middle.getParent();
 		        	parent.revalidate();
@@ -411,7 +613,7 @@ public class UI implements ActionListener {
 			            	for(int i = 0; i < player1.Pokemon.size(); i++)
 			            		if(player1.Pokemon.get(i).getKey().equals(btn.getName()))
 			          			{
-					           		System.out.println("Removing " + player1.Pokemon.get(i).getName());				            		
+					           		//System.out.println("Removing " + player1.Pokemon.get(i).getName());				            		
 					           		player1.Pokemon.remove(i);
 			           			}
 		            		gbcGame.gridy--;
@@ -454,7 +656,7 @@ public class UI implements ActionListener {
 		        	
 		        	player2.addPokemon(pokemon.get(row));
 		        	
-		        	System.out.println(pokemon.get(row) + " Added");
+		        	//System.out.println(pokemon.get(row) + " Added");
 		        
 		        	Container parent = middle.getParent();
 		        	parent.revalidate();
@@ -468,7 +670,7 @@ public class UI implements ActionListener {
 		            		for(int i = 0; i <player2.Pokemon.size(); i++)
 		            			if(player2.Pokemon.get(i).getKey().equals(btn.getName()))
 		            			{
-				            		System.out.println("Removing " + player2.Pokemon.get(i).getName());				            		
+				            		//System.out.println("Removing " + player2.Pokemon.get(i).getName());				            		
 				            		player2.Pokemon.remove(i);
 		            			}
 
@@ -592,8 +794,7 @@ public class UI implements ActionListener {
 		
 		cleanPanels();
 		
-		int player1Poke = 0;
-		int player2Poke = 0;
+
 		
 		//playFrame.setLayout(new FlowLayout());;
 		
@@ -622,6 +823,26 @@ public class UI implements ActionListener {
         Image Pokeimage6 = iconPoke6.getImage();
         Image play6 = Pokeimage6.getScaledInstance(600, 200, Image.SCALE_DEFAULT);
         
+        java.net.URL url7 = UI.class.getResource("/resources/green.jpg");
+        ImageIcon iconPoke7 = new ImageIcon(url7);
+        Image Pokeimage7 = iconPoke7.getImage();
+        Image play7 = Pokeimage7.getScaledInstance(250, 10, Image.SCALE_DEFAULT);
+        
+        java.net.URL url8 = UI.class.getResource("/resources/yellow.jpg");
+        ImageIcon iconPoke8 = new ImageIcon(url8);
+        Image Pokeimage8 = iconPoke8.getImage();
+        Image yellow = Pokeimage8.getScaledInstance(230, 15, Image.SCALE_DEFAULT);
+        
+        java.net.URL url9 = UI.class.getResource("/resources/red.jpg");
+        ImageIcon iconPoke9 = new ImageIcon(url9);
+        Image Pokeimage9 = iconPoke9.getImage();
+        Image red = Pokeimage9.getScaledInstance(230, 15, Image.SCALE_DEFAULT);
+        
+        java.net.URL urla = UI.class.getResource("/resources/green.jpg");
+        ImageIcon iconPokea = new ImageIcon(urla);
+        Image Pokeimagea = iconPokea.getImage();
+        Image green = Pokeimagea.getScaledInstance(230, 15, Image.SCALE_DEFAULT);
+        
         JLabel label = new JLabel(new ImageIcon(background));
         BlinkLabel label2 = new BlinkLabel(new ImageIcon(play3)); 
         BlinkLabel label3 = new BlinkLabel(new ImageIcon(play4));
@@ -629,6 +850,8 @@ public class UI implements ActionListener {
         BlinkLabel label5 = new BlinkLabel(new ImageIcon(play6));
         BlinkLabel name1 = new BlinkLabel(player1.Pokemon.get(player1Poke).getName()); 
         BlinkLabel name2 = new BlinkLabel(player2.Pokemon.get(player1Poke).getName());
+        BlinkLabel health1 = new BlinkLabel(new ImageIcon(green));
+        BlinkLabel health2 = new BlinkLabel(new ImageIcon(green));
         
        // GridBagConstraints gameCon = new GridBagConstraints();
         
@@ -692,8 +915,18 @@ public class UI implements ActionListener {
         name2.setFont(font3);
         name2.setForeground(Color.DARK_GRAY);
         
+        health1.setSize(new Dimension(230,200));
+        health2.setSize(new Dimension(230,200));
+        
+        
+        health1.move(270, 292);
+        health2.move(410, 261);
+        
         label4.add(name2);
         label5.add(name1);
+        
+        label4.add(health1);
+        label5.add(health2);
         
         label.add(label5);
         buttons.move(1040, 700);
@@ -736,18 +969,25 @@ public class UI implements ActionListener {
 		}
 
 	    // create an audiostream from the inputstream
-	    AudioStream battle = null;
+	   // final AudioStream battle;
 		try {
-			battle = new AudioStream(in);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			 final AudioStream battle = new AudioStream(in);
+			 AudioPlayer.player.start(battle);
 		
-		AudioPlayer.player.start(battle);
 		
-		String thisFile1 = "C:\\Users\\Dogan\\git\\Pokueries\\Pokueries\\src\\resources\\ping.wav";
-	    InputStream in1 = null;
+		//AudioPlayer.player.start(battle);
+		
+		//String thisFile1 = "C:\\Users\\Dogan\\git\\Pokueries\\Pokueries\\src\\resources\\ping.wav";
+	    //InputStream in1 = null;
+	    
+			AudioStream s;
+		String thisFile1 = "C:\\Users\\Dogan\\git\\Pokueries\\Pokueries\\src\\resources\\critical.wav";
+	   
+		InputStream in1 = null;
+		
+			in1 = new FileInputStream(thisFile1);
+
+			 AudioStream loop = new AudioStream(in1);
 	    
         attack.addActionListener(new ActionListener(){
         	 public void actionPerformed(ActionEvent e){
@@ -761,14 +1001,17 @@ public class UI implements ActionListener {
     		 
     		 if(turns % 2 == 1)
  			{
-    			 attack1.setText(player1.Pokemon.get(0).getAttack1Name());
-    			 attack2.setText(player1.Pokemon.get(0).getAttack2Name());
+    			 attack1.setText(player1.Pokemon.get(player1Poke).getAttack1Name());
+    			 attack2.setText(player1.Pokemon.get(player1Poke).getAttack2Name());
  			}
     		 else
     		 {
-    			 attack1.setText(player2.Pokemon.get(0).getAttack1Name());
-    			 attack2.setText(player2.Pokemon.get(0).getAttack2Name());
+    			 attack1.setText(player2.Pokemon.get(player2Poke).getAttack1Name());
+    			 attack2.setText(player2.Pokemon.get(player2Poke).getAttack2Name());
     		 }
+    		 
+    		// AudioPlayer.player.stop(battle);
+    		 
     		 attack1.setMinimumSize(new Dimension(100,60));
     		 attack1.setFont(font2);
     		 
@@ -777,9 +1020,29 @@ public class UI implements ActionListener {
     		 
     		 attack1.addActionListener(new ActionListener(){
     	       	 public void actionPerformed(ActionEvent e){
-    	     		ping();
+    	       		 ping();
+    	     		
+    	     	
     	     		
     	     		buttons.removeAll();
+    	     		
+    	     		dmg = 0;
+    	     		hp = 0;
+    	     		
+	       			if(turns % 2 == 1)
+	    			{
+	       				dmg = player1.Pokemon.get(player1Poke).getAttack1Damage();
+	       				hp = player2.Pokemon.get(player2Poke).getHP();
+	    			}
+	       			else
+	       			{
+	       				dmg = player2.Pokemon.get(player2Poke).getAttack1Damage();
+	       				hp = player1.Pokemon.get(player1Poke).getHP();
+	       			}
+	       			
+	       			////System.out.println(dmg + " " + hp);
+	       			
+
     	     		
     	     		buttons.repaint();
     	     		buttons.revalidate();
@@ -787,12 +1050,102 @@ public class UI implements ActionListener {
     	       		Timer timer = new Timer();
     	       		timer.schedule(new TimerTask() {
     	       			int i = 0;
+    	       			
+    	       			
     	       		  @Override
     	       		  
     	       		  public void run() {
+    	       			  
+    	       			  
     	       			i++;
+    	       			
+    	       			if(turns % 2 == 1) //player 2s turn
+    	       				hp = player2.Pokemon.get(player2Poke).getHP();
+    	       			else
+    	       				hp = player1.Pokemon.get(player1Poke).getHP();
+    	       			
+    	       			//if(turns % 2 == 0)
+    	       			
+    	       			if(i%8==0)
+    	       				if(dmg > 0)
+    	       				{
+
+    	       			if(turns % 2 == 1)
+    	    			{
+	       					if(j == 1){
+	       						//health1.setSize(new Dimension(230, 200));
+    	       					player2.Pokemon.get(player2Poke).setHP(0);
+    	       					faint();
+    	       					player2Poke++;
+    	       					player2.Pokemon.get(player2Poke).setCurrentHP(player2.Pokemon.get(player2Poke).getHP());
+    	       					System.out.println("poke up");
+    	       					dmg = 0;
+    	       					j = 0;
+    	       				}
+    	       				else
+    	       				{
+    	       				player2.Pokemon.get(player2Poke).setHP(player2.Pokemon.get(player2Poke).getHP()-1);
+    	       				System.out.println(dmg);
+    	       				dmg--;
+    	       				
+    	       				health1.setSize(health1.getSize().width-(6),health1.getSize().height);
+    	       				health1.move(health1.getX(), health1.getY());
+    	       				
+    	       				if(health1.getSize().width < 60)
+    	       					health1.setIcon(new ImageIcon(red));
+    	       				else if(health1.getSize().width < 150)
+    	       					health1.setIcon(new ImageIcon(yellow));
+    	       				System.out.println(health1.getSize().width);
+    	       				
+    	       				
+    	       				health1.getParent().repaint();
+    	       				
+    	       				
+    	       				
+    	       				
+    	       				}
+    	       				
+
+    	    			}
+    	       			else
+    	       			{
+	       					if(j == 1){
+	       						//health1.setSize(new Dimension(230, 200));
+    	       					player1.Pokemon.get(player1Poke).setHP(0);
+    	       					faint();
+    	       					player1Poke++;
+    	       					pokeball();
+    	       					player1.Pokemon.get(player1Poke).setCurrentHP(player1.Pokemon.get(player1Poke).getHP());
+    	       					
+    	       					j = 0;
+    	       					
+    	       					//System.out.println(hp);
+    	       					dmg = 0;
+    	       				}
+    	       				else
+    	       				{
+    	       				player1.Pokemon.get(player1Poke).setHP(player1.Pokemon.get(player1Poke).getHP()-1);
+    	       				System.out.println(dmg);
+    	       				dmg--;
+    	       				
+    	       				health1.setSize(health1.getSize().width-(6),health1.getSize().height);
+    	       				health1.move(health1.getX(), health1.getY());
+    	       				
+    	       				if(health1.getSize().width < 60)
+    	       					health1.setIcon(new ImageIcon(red));
+    	       				else if(health1.getSize().width < 150)
+    	       					health1.setIcon(new ImageIcon(yellow));
+    	       				System.out.println(health1.getSize().width);
+    	       				
+    	       				health1.getParent().repaint();
+    	       				}
+    	       				
+    	       			}
+    	       		}
+    	       			
+    	       			
     	       			  if(i<10){
-    	       		    //System.out.println("check");
+    	       		    System.out.println(health1.size()+ " size");
     	       		    label2.move(label2.getX()+10, label2.getY()-10);
     	       		    playFrame.repaint();
     	       		    //i++;
@@ -807,10 +1160,25 @@ public class UI implements ActionListener {
     	       		    	label2.move(label2.getX()-10, label2.getY()+10);
     	       		    	playFrame.repaint();
     	       		    }
-    	       		    else if(i >=250)
+    	       		    else if(i >=300)
     		    		{
     		    			//label3.repositionRight();
     		    			transition();
+    		    			
+	       					if(health1.size().getWidth() < 5)
+	       					{
+	       						health1.setSize(new Dimension(230, 200));
+	       						if(turns % 2 == 1)
+	       							player2Poke++;
+	       						else
+	       							player1Poke++;
+	       						pokeball();
+	       						
+	       					}
+	       					if(health2.size().getWidth() < 5)
+	       					{
+	       						j = 1;
+	       					}
     		    			
     		    			if(turns % 2 == 1)
     		    			{
@@ -854,6 +1222,81 @@ public class UI implements ActionListener {
     		    			
     		    	        label4.move(-100, -300);
     		    	        label5.move(975, 260);
+    		    	        
+    		    	        
+    		    	        Dimension buff = new Dimension(health1.getSize());
+ 
+        	       				
+        	       				health1.setSize(health2.getSize().width,health2.getSize().height);
+        	       				health2.setSize(buff);
+        	       				
+        	       				if(health1.getSize().width < 60)
+        	       					health1.setIcon(new ImageIcon(red));
+        	       				else if(health1.getSize().width < 150)
+        	       					health1.setIcon(new ImageIcon(yellow));
+        	       				else
+        	       					health1.setIcon(new ImageIcon(green));
+        	       				try {
+
+										 //AudioPlayer.player.start(battle);
+								  //AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(bufferedIn);
+								    
+								    //AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(in1);
+								    
+								    //Clip clip = AudioSystem.getClip();
+								    //clip.open(audioInputStream);
+								    //clip.loop(Clip.LOOP_CONTINUOUSLY);
+								    //clip.start();
+								    
+								    
+									
+										//in1 = new FileInputStream(thisFile);
+									
+									
+        	       					
+        	       				if(health2.getSize().width < 60)
+        	       				{
+        	       					
+									
+
+		        	       					AudioPlayer.player.start(loop);
+        	       					//clip.start();
+		        	       					health2.setIcon(new ImageIcon(red));
+										
+  
+        	       				}
+        	       				
+        	       				else if(health2.getSize().width < 150)
+        	       				{
+        	       					
+        	       					AudioPlayer.player.stop(loop);
+        	       					//clip.stop();
+        	       					health2.setIcon(new ImageIcon(yellow));
+        	       				}
+        	       				else
+        	       				{
+        	       					AudioPlayer.player.stop(loop);
+        	       					//clip.stop();
+        	       					health2.setIcon(new ImageIcon(green));
+        	       				}
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}   
+        	       				System.out.println(health1.getSize().width);
+        	       				
+        	       				System.out.println(health1.getSize().width);
+        	       				//health1.move(health1.getX(), health1.getY());
+        	       				health1.getParent().repaint();
+        	       				health2.getParent().repaint();
+        	       				
+        	       				
+        	       				
+        	       				
+
+        	    			
+
+        	       				
     		    			
     		    			turns++;
     		    			
@@ -872,114 +1315,316 @@ public class UI implements ActionListener {
     		    			playFrame.repaint();
     		    			this.cancel();
     		    		}
-    	       		 System.out.println(i);
+    	       		 ////System.out.println(i);
     	       		  }
     	       		}, 500,10);
     	       		
     	        	 }
     	      });
     		 attack2.addActionListener(new ActionListener(){
-	       	 public void actionPerformed(ActionEvent e){
-	     		ping();
-	     		
-	     		buttons.removeAll();
-	     		
-	     		buttons.repaint();
-	     		buttons.revalidate();
-	     		
-	       		Timer timer = new Timer();
-	       		timer.schedule(new TimerTask() {
-	       			int i = 0;
-	       		  @Override
-	       		  
-	       		  public void run() {
-	       			i++;
-	       			  if(i<10){
-	       		    //System.out.println("check");
-	       		    label2.move(label2.getX()+10, label2.getY()-10);
-	       		    playFrame.repaint();
-	       		    //i++;
-	       			  }
-	       		    if(i>=10&& i <20)
-	       		    {
-	       		    	if(i == 10)
-	       		    	{
-	       		    	attack();
-	       		    	label3.blink();
-	       		    	}
-	       		    	label2.move(label2.getX()-10, label2.getY()+10);
-	       		    	playFrame.repaint();
-	       		    }
-	       		    else if(i >=250)
-		    		{
-		    			//label3.repositionRight();
-		    			transition();
-		    			
-		    			if(turns % 2 == 1)
-		    			{
-		    	        java.net.URL url6 = UI.class.getResource("/resources/" + player1.Pokemon.get(player1Poke).getName() + ".gif.gif");
-		    	        ImageIcon iconPoke6 = new ImageIcon(url6);
-		    	        Image Pokeimage6 = iconPoke6.getImage();
-		    	        Image play6 = Pokeimage6.getScaledInstance(300, 300, Image.SCALE_DEFAULT);
-		    	        
-		    	        java.net.URL url5 = UI.class.getResource("/resources/" + player2.Pokemon.get(player2Poke).getName() + "Back.gif.gif");
-		    	        ImageIcon iconPoke5 = new ImageIcon(url5);
-		    	        Image Pokeimage5 = iconPoke5.getImage();
-		    	        Image play5 = Pokeimage5.getScaledInstance(600, 600, Image.SCALE_DEFAULT);
-		    	        
-		    	        label2.setIcon(new ImageIcon(play5)); 
-		    	        label3.setIcon(new ImageIcon(play6)); 
-		    	        
-		    	        name1.setText(player2.Pokemon.get(player2Poke).getName());
-		    	        name2.setText(player1.Pokemon.get(player1Poke).getName());
-		    			}
-		    			else
-		    			{
-    		    	        java.net.URL url6 = UI.class.getResource("/resources/" + player2.Pokemon.get(player2Poke).getName() + ".gif.gif");
+    	       	 public void actionPerformed(ActionEvent e){
+    	       		 ping();
+    	     		
+    	     	
+    	     		
+    	     		buttons.removeAll();
+    	     		
+    	     		dmg = 0;
+    	     		hp = 0;
+    	     		
+	       			if(turns % 2 == 1)
+	    			{
+	       				dmg = player1.Pokemon.get(player1Poke).getAttack2Damage();
+	       				hp = player2.Pokemon.get(player2Poke).getHP();
+	    			}
+	       			else
+	       			{
+	       				dmg = player2.Pokemon.get(player2Poke).getAttack2Damage();
+	       				hp = player1.Pokemon.get(player1Poke).getHP();
+	       			}
+	       			
+	       			////System.out.println(dmg + " " + hp);
+	       			
+
+    	     		
+    	     		buttons.repaint();
+    	     		buttons.revalidate();
+    	     		
+    	       		Timer timer = new Timer();
+    	       		timer.schedule(new TimerTask() {
+    	       			int i = 0;
+    	       			
+    	       			
+    	       		  @Override
+    	       		  
+    	       		  public void run() {
+    	       			  
+    	       			  
+    	       			i++;
+    	       			
+    	       			if(turns % 2 == 1) //player 2s turn
+    	       				hp = player2.Pokemon.get(player2Poke).getHP();
+    	       			else
+    	       				hp = player1.Pokemon.get(player1Poke).getHP();
+    	       			
+    	       			//if(turns % 2 == 0)
+    	       			
+    	       			if(i%8==0)
+    	       				if(dmg > 0)
+    	       				{
+
+    	       			if(turns % 2 == 1)
+    	    			{
+	       					if(j == 1){
+	       						//health1.setSize(new Dimension(230, 200));
+    	       					player2.Pokemon.get(player2Poke).setHP(0);
+    	       					faint();
+    	       					player2Poke++;
+    	       					player2.Pokemon.get(player2Poke).setCurrentHP(player2.Pokemon.get(player2Poke).getHP());
+    	       					System.out.println("poke up");
+    	       					dmg = 0;
+    	       					j = 0;
+    	       				}
+    	       				else
+    	       				{
+    	       				player2.Pokemon.get(player2Poke).setHP(player2.Pokemon.get(player2Poke).getHP()-1);
+    	       				System.out.println(dmg);
+    	       				dmg--;
+    	       				
+    	       				health1.setSize(health1.getSize().width-(6),health1.getSize().height);
+    	       				health1.move(health1.getX(), health1.getY());
+    	       				
+    	       				if(health1.getSize().width < 60)
+    	       					health1.setIcon(new ImageIcon(red));
+    	       				else if(health1.getSize().width < 150)
+    	       					health1.setIcon(new ImageIcon(yellow));
+    	       				System.out.println(health1.getSize().width);
+    	       				
+    	       				
+    	       				health1.getParent().repaint();
+    	       				
+    	       				
+    	       				
+    	       				
+    	       				}
+    	       				
+
+    	    			}
+    	       			else
+    	       			{
+	       					if(j == 1){
+	       						//health1.setSize(new Dimension(230, 200));
+    	       					player1.Pokemon.get(player1Poke).setHP(0);
+    	       					faint();
+    	       					player1Poke++;
+    	       					pokeball();
+    	       					player1.Pokemon.get(player1Poke).setCurrentHP(player1.Pokemon.get(player1Poke).getHP());
+    	       					
+    	       					j = 0;
+    	       					
+    	       					//System.out.println(hp);
+    	       					dmg = 0;
+    	       				}
+    	       				else
+    	       				{
+    	       				player1.Pokemon.get(player1Poke).setHP(player1.Pokemon.get(player1Poke).getHP()-1);
+    	       				System.out.println(dmg);
+    	       				dmg--;
+    	       				
+    	       				health1.setSize(health1.getSize().width-(6),health1.getSize().height);
+    	       				health1.move(health1.getX(), health1.getY());
+    	       				
+    	       				if(health1.getSize().width < 60)
+    	       					health1.setIcon(new ImageIcon(red));
+    	       				else if(health1.getSize().width < 150)
+    	       					health1.setIcon(new ImageIcon(yellow));
+    	       				System.out.println(health1.getSize().width);
+    	       				
+    	       				health1.getParent().repaint();
+    	       				}
+    	       				
+    	       			}
+    	       		}
+    	       			
+    	       			
+    	       			  if(i<10){
+    	       		    System.out.println(health1.size()+ " size");
+    	       		    label2.move(label2.getX()+10, label2.getY()-10);
+    	       		    playFrame.repaint();
+    	       		    //i++;
+    	       			  }
+    	       		    if(i>=10&& i <20)
+    	       		    {
+    	       		    	if(i == 10)
+    	       		    	{
+    	       		    	attack();
+    	       		    	label3.blink();
+    	       		    	}
+    	       		    	label2.move(label2.getX()-10, label2.getY()+10);
+    	       		    	playFrame.repaint();
+    	       		    }
+    	       		    else if(i >=300)
+    		    		{
+    		    			//label3.repositionRight();
+    		    			transition();
+    		    			
+	       					if(health1.size().getWidth() < 5)
+	       					{
+	       						health1.setSize(new Dimension(230, 200));
+	       						if(turns % 2 == 1)
+	       							player2Poke++;
+	       						else
+	       							player1Poke++;
+	       						pokeball();
+	       						
+	       					}
+	       					if(health2.size().getWidth() < 5)
+	       					{
+	       						j = 1;
+	       					}
+    		    			
+    		    			if(turns % 2 == 1)
+    		    			{
+    		    	        java.net.URL url6 = UI.class.getResource("/resources/" + player1.Pokemon.get(player1Poke).getName() + ".gif.gif");
     		    	        ImageIcon iconPoke6 = new ImageIcon(url6);
     		    	        Image Pokeimage6 = iconPoke6.getImage();
     		    	        Image play6 = Pokeimage6.getScaledInstance(300, 300, Image.SCALE_DEFAULT);
     		    	        
-    		    	        java.net.URL url5 = UI.class.getResource("/resources/" + player1.Pokemon.get(player1Poke).getName() + "Back.gif.gif");
+    		    	        java.net.URL url5 = UI.class.getResource("/resources/" + player2.Pokemon.get(player2Poke).getName() + "Back.gif.gif");
     		    	        ImageIcon iconPoke5 = new ImageIcon(url5);
     		    	        Image Pokeimage5 = iconPoke5.getImage();
     		    	        Image play5 = Pokeimage5.getScaledInstance(600, 600, Image.SCALE_DEFAULT);
     		    	        
     		    	        label2.setIcon(new ImageIcon(play5)); 
-    		    	        label3.setIcon(new ImageIcon(play6));
+    		    	        label3.setIcon(new ImageIcon(play6)); 
     		    	        
-    		    	        name2.setText(player2.Pokemon.get(player2Poke).getName());
-    		    	        name1.setText(player1.Pokemon.get(player1Poke).getName());
-		    			}
-		    			
-		    			label2.move(70, 300);
-		    			label3.move(1000, 100);
-		    			
-		    	        label4.move(-100, -300);
-		    	        label5.move(975, 260);
-		    			
-		    			turns++;
-		    			
-		    			label2.fastTransitionRight(0,0);
-		    			label3.fastTransitionLeft(0,0);
-		    			label4.fastTransitionRight(700,-50);
-		    			label5.fastTransitionLeft(700,0);
-		    			
-		    	        buttons.add(attack);
-		    	        buttons.add(items);
-		    	        buttons.add(poke);
-		    	        buttons.add(exit);
-		    			
-		    			buttons.setVisible(true);
-		    			
-		    			playFrame.repaint();
-		    			this.cancel();
-		    		}
-	       		 System.out.println(i);
-	       		  }
-	       		}, 500,10);
-	       		
-	        	 }});
+    		    	        name1.setText(player2.Pokemon.get(player2Poke).getName());
+    		    	        name2.setText(player1.Pokemon.get(player1Poke).getName());
+    		    			}
+    		    			else
+    		    			{
+        		    	        java.net.URL url6 = UI.class.getResource("/resources/" + player2.Pokemon.get(player2Poke).getName() + ".gif.gif");
+        		    	        ImageIcon iconPoke6 = new ImageIcon(url6);
+        		    	        Image Pokeimage6 = iconPoke6.getImage();
+        		    	        Image play6 = Pokeimage6.getScaledInstance(300, 300, Image.SCALE_DEFAULT);
+        		    	        
+        		    	        java.net.URL url5 = UI.class.getResource("/resources/" + player1.Pokemon.get(player1Poke).getName() + "Back.gif.gif");
+        		    	        ImageIcon iconPoke5 = new ImageIcon(url5);
+        		    	        Image Pokeimage5 = iconPoke5.getImage();
+        		    	        Image play5 = Pokeimage5.getScaledInstance(600, 600, Image.SCALE_DEFAULT);
+        		    	        
+        		    	        label2.setIcon(new ImageIcon(play5)); 
+        		    	        label3.setIcon(new ImageIcon(play6)); 
+        		    	        
+        		    	        name2.setText(player2.Pokemon.get(player2Poke).getName());
+        		    	        name1.setText(player1.Pokemon.get(player1Poke).getName());
+    		    			}
+    		    			
+    		    			label2.move(70, 300);
+    		    			label3.move(1000, 100);
+    		    			
+    		    	        label4.move(-100, -300);
+    		    	        label5.move(975, 260);
+    		    	        
+    		    	        
+    		    	        Dimension buff = new Dimension(health1.getSize());
+ 
+        	       				
+        	       				health1.setSize(health2.getSize().width,health2.getSize().height);
+        	       				health2.setSize(buff);
+        	       				
+        	       				if(health1.getSize().width < 60)
+        	       					health1.setIcon(new ImageIcon(red));
+        	       				else if(health1.getSize().width < 150)
+        	       					health1.setIcon(new ImageIcon(yellow));
+        	       				else
+        	       					health1.setIcon(new ImageIcon(green));
+        	       				try {
+
+										 //AudioPlayer.player.start(battle);
+								  //AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(bufferedIn);
+								    
+								    //AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(in1);
+								    
+								    //Clip clip = AudioSystem.getClip();
+								    //clip.open(audioInputStream);
+								    //clip.loop(Clip.LOOP_CONTINUOUSLY);
+								    //clip.start();
+								    
+								    
+									
+										//in1 = new FileInputStream(thisFile);
+									
+									
+        	       					
+        	       				if(health2.getSize().width < 60)
+        	       				{
+        	       					
+									
+
+		        	       					AudioPlayer.player.start(loop);
+        	       					//clip.start();
+		        	       					health2.setIcon(new ImageIcon(red));
+										
+  
+        	       				}
+        	       				
+        	       				else if(health2.getSize().width < 150)
+        	       				{
+        	       					
+        	       					AudioPlayer.player.stop(loop);
+        	       					//clip.stop();
+        	       					health2.setIcon(new ImageIcon(yellow));
+        	       				}
+        	       				else
+        	       				{
+        	       					AudioPlayer.player.stop(loop);
+        	       					//clip.stop();
+        	       					health2.setIcon(new ImageIcon(green));
+        	       				}
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}   
+        	       				System.out.println(health1.getSize().width);
+        	       				
+        	       				System.out.println(health1.getSize().width);
+        	       				//health1.move(health1.getX(), health1.getY());
+        	       				health1.getParent().repaint();
+        	       				health2.getParent().repaint();
+        	       				
+        	       				
+        	       				
+        	       				
+
+        	    			
+
+        	       				
+    		    			
+    		    			turns++;
+    		    			
+    		    			label2.fastTransitionRight(0,0);
+    		    			label3.fastTransitionLeft(0,0);
+    		    			label4.fastTransitionRight(1000,-50);
+    		    			label5.fastTransitionLeft(1000,0);
+    		    			
+    		    	        buttons.add(attack);
+    		    	        buttons.add(items);
+    		    	        buttons.add(poke);
+    		    	        buttons.add(exit);
+    		    			
+    		    			buttons.setVisible(true);
+    		    			
+    		    			playFrame.repaint();
+    		    			this.cancel();
+    		    		}
+    	       		 ////System.out.println(i);
+    	       		  }
+    	       		}, 500,10);
+    	       		
+    	        	 }
+    	      });
+    		 
 	      
     		 
     		 
@@ -991,6 +1636,7 @@ public class UI implements ActionListener {
     		 
         	 }
       });
+        
         
         items.addActionListener(new ActionListener(){
        	 public void actionPerformed(ActionEvent e){
@@ -1007,6 +1653,11 @@ public class UI implements ActionListener {
     		ping();
        	 }
      });
+        exit.addActionListener(new ActionListener(){
+        	 public void actionPerformed(ActionEvent e){
+        		System.exit(1);
+        	 }
+      });
 		
 		playFrame.setVisible(true);
 		mainFrame.add(playFrame);
@@ -1015,6 +1666,10 @@ public class UI implements ActionListener {
         label3.slowTransitionLeft(0,0);
         label4.slowTransitionRight(1000,-50);
         label5.slowTransitionLeft(1000,0);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	public void delay()
 	{
@@ -1055,6 +1710,44 @@ public class UI implements ActionListener {
 			}
 		 AudioPlayer.player.start(ping);
 	}
+	public void pokeball()
+	{
+		String thisFile1 = "C:\\Users\\Dogan\\git\\Pokueries\\Pokueries\\src\\resources\\pokeball.wav";
+		    InputStream in1 = null;
+			try {
+				in1 = new FileInputStream(thisFile1);
+			} catch (FileNotFoundException eg) {
+				// TODO Auto-generated catch block
+				eg.printStackTrace();
+			}
+		    AudioStream ping = null;
+			try {
+				ping = new AudioStream(in1);
+			} catch (IOException ei) {
+				// TODO Auto-generated catch block
+				ei.printStackTrace();
+			}
+		 AudioPlayer.player.start(ping);
+	}
+	public void faint()
+	{
+		String thisFile1 = "C:\\Users\\Dogan\\git\\Pokueries\\Pokueries\\src\\resources\\faint.wav";
+		    InputStream in1 = null;
+			try {
+				in1 = new FileInputStream(thisFile1);
+			} catch (FileNotFoundException eg) {
+				// TODO Auto-generated catch block
+				eg.printStackTrace();
+			}
+		    AudioStream ping = null;
+			try {
+				ping = new AudioStream(in1);
+			} catch (IOException ei) {
+				// TODO Auto-generated catch block
+				ei.printStackTrace();
+			}
+		 AudioPlayer.player.start(ping);
+	}
 	public void attack()
 	{
 		String thisFile1 = "C:\\Users\\Dogan\\git\\Pokueries\\Pokueries\\src\\resources\\attack.wav";
@@ -1072,7 +1765,7 @@ public class UI implements ActionListener {
 				// TODO Auto-generated catch block
 				ei.printStackTrace();
 			}
-			//System.out.println("attack");
+			////System.out.println("attack");
 		 AudioPlayer.player.start(ping);
 	}
 	public void transition()
@@ -1092,7 +1785,7 @@ public class UI implements ActionListener {
 				// TODO Auto-generated catch block
 				ei.printStackTrace();
 			}
-			//System.out.println("attack");
+			////System.out.println("attack");
 		 AudioPlayer.player.start(ping);
 	}
 	@Override

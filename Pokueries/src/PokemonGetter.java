@@ -18,13 +18,13 @@ import java.util.Date;
 public class PokemonGetter {
 	// This class exists for the sole purpose of getting all pokemon
 	// from the database and returning them in an Array List
-	private Connection connect = null;
-	//private Connection connect2 = null;
-	private Statement statement = null;
-	private Statement statement2 = null;
-	//private PreparedStatement preparedStatement = null;
-	private ResultSet resultSet = null;
-	private ResultSet resultSet2 = null;
+	public Connection connect = null;
+	//public Connection connect2 = null;
+	public Statement statement = null;
+	public Statement statement2 = null;
+	//public PreparedStatement preparedStatement = null;
+	public ResultSet resultSet = null;
+	public ResultSet resultSet2 = null;
 	
 	// Per mySQL
 	// host = 127.0.0.1

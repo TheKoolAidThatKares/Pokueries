@@ -132,7 +132,7 @@ public class BlinkLabel extends JLabel {
 	public void slideLeft()
 	{
 		this.move(this.getX()-30, this.getY());
-		System.out.println("hello");
+	//	System.out.println("hello");
 		this.getParent().repaint();
 	}
 	public void repositionLeft(int set)
@@ -143,7 +143,7 @@ public class BlinkLabel extends JLabel {
 	public void slideRight()
 	{
 		this.move(this.getX()+30, this.getY());
-		System.out.println("hello");
+		//System.out.println("hello");
 		this.getParent().repaint();
 	}
 
